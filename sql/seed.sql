@@ -25,9 +25,15 @@ INSERT INTO Customers (userID, totalMiles, points) VALUES
 INSERT INTO Employees (userID, salary, startDate, position) VALUES
 (3, 92000.00,  "2022-05-01 09:00:00", "Pilot"),
 (4, 58000.00,  "2020-11-15 09:00:00", "Flight Attendant"),
-(6, 120000.00, "2020-01-01 12:00:00", "Big Guy In Charge"),
-(7, 80000.00,  "2021-07-04 14:00:00", "Serving Staff"),
+(6, 120000.00, "2020-01-01 12:00:00", "CEO"),
+(7, 80000.00,  "2021-07-04 14:00:00", "Flight Attendant"),
 (8, 60000.00,  "2024-10-30 03:30:15", "Janitor");
+
+INSERT INTO EmployeePositions (id, position) VALUES
+(1, "Pilot");
+(2, "Flight Attendant")
+(3, "Janitor")
+(4, "CEO");
 
 INSERT INTO Flights (flightID, status, arrival, departure, airline, model) VALUES
 (101, "On Time",   "2025-11-02 20:30:00", "2025-11-02 17:15:00", "SkyJet",    "Boeing 737"),
