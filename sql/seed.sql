@@ -69,4 +69,3 @@ INSERT INTO CustomerRewards (userID, rewardID, rewardTier) VALUES
 (5,  3, 3),
 (9,  5, 10),
 (10, 4, 1);
---- Hello 
