@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS Flights;
 DROP TABLE IF EXISTS Rewards;
 DROP TABLE IF EXISTS TicketPrices;
 DROP TABLE IF EXISTS UserFlights;
-DROP TABLE IF EXISTS CustomerRewards
+DROP TABLE IF EXISTS CustomerRewards;
 
 CREATE TABLE Users (
     userID INT PRIMARY KEY,
@@ -33,6 +33,11 @@ CREATE TABLE Employees (
     startDate DATETIME,
     position VARCHAR(30),
     FOREIGN KEY (userID) REFERENCES Users(userID)
+);
+
+CREATE TABLE EmployeePositions (
+    id INT PRIMARY KEY,
+    position VARCHAR(30) NOT NULL
 );
 
 CREATE TABLE Flights (
