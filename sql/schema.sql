@@ -41,7 +41,9 @@ CREATE TABLE Flights (
     arrival DATETIME,
     departure DATETIME,
     airline VARCHAR(20) NOT NULL,
-    model VARCHAR(20) NOT NULL
+    model VARCHAR(20) NOT NULL,
+    toLocation VARCHAR(20) NOT NULL,
+    distanceTraveled INT
 );
 
 CREATE TABLE Rewards (
