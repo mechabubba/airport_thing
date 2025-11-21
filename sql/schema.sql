@@ -117,3 +117,23 @@ BEGIN
 END // 
 
 DELIMITER ;
+
+-- Function [avgPrice]:
+-- Just returning the average price of a flight based off the type of seat the user takes (economy, business, first)
+
+DELIMITER //
+
+CREATE FUNCTION avgPrice(input_ticketID INT)
+RETURNS DECIMAL(10, 2)
+BEGIN
+    DECLARE resulted_price DECIMAL(10, 2);
+
+    SELECT (firstClassPrice + businessClassPrice + economyPrice) / 3
+    INTO resulted_price
+    FROM TicketPrices 
+    WHERE ticketID = input_ticketID;
+
+    RETURN resulted_price;
+END // 
+
+DELIMITER ; 
