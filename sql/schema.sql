@@ -15,8 +15,6 @@ DROP VIEW IF EXISTS FlightStatuses;
 DROP VIEW IF EXISTS EmployeeView;
 DROP PROCEDURE IF EXISTS purchaseTicket;
 DROP FUNCTION IF EXISTS avgPrice;
-DROP TRIGGER IF EXISTS blockSecondCeo;
-DROP TRIGGER IF EXISTS checkPricePier;
 
 CREATE TABLE Users (
     userID INT AUTO_INCREMENT PRIMARY KEY,
@@ -181,4 +179,22 @@ BEGIN
         SET MESSAGE_TEXT = 'Invalid prices';
 	END IF;
 END//
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER validatePositionBeforeInsert
+BEFORE INSERT ON Employees
+FOR EACH ROW
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM EmployeePositions
+        WHERE position = NEW.position
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid position!';
+    END IF;
+END//
+
 DELIMITER ;
