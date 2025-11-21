@@ -70,10 +70,9 @@ INSERT INTO CustomerRewards (userID, rewardID, rewardTier) VALUES
 (9,  5, 10),
 (10, 4, 1);
 
--- demo of new CEO
+-- demo of multiple CEOs not being allowed
+-- INSERT INTO Employees (userID, salary, startDate, position)
+-- VALUES (10, 150000, "2025-11-21 12:00:00", "CEO");
 
-INSERT INTO Employees (userID, salary, startDate, position)
-VALUES (10, 150000, "2025-11-21 12:00:00", "CEO");
-
-SELECT * FROM Employees;
-SHOW TRIGGERS;
+-- SELECT * FROM Employees;
+-- SHOW TRIGGERS;

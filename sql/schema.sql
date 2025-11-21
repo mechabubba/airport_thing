@@ -1,8 +1,7 @@
+-- DROP DATABASE IF EXISTS Team10_Deliverable4;
 CREATE DATABASE IF NOT EXISTS Team10_Deliverable4;
 USE Team10_Deliverable4;
--- DROP DATABASE Team10_Deliverable4;
 
-DROP VIEW IF EXISTS FlightStatuses;
 DROP TABLE IF EXISTS UserFlights;
 DROP TABLE IF EXISTS CustomerRewards;
 DROP TABLE IF EXISTS Customers;
@@ -12,11 +11,15 @@ DROP TABLE IF EXISTS Rewards;
 DROP TABLE IF EXISTS TicketPrices;
 DROP TABLE IF EXISTS Users;
 DROP TABLE IF EXISTS EmployeePositions;
-DROP TRIGGER IF EXISTS block_second_ceo;
+DROP VIEW IF EXISTS FlightStatuses;
+DROP VIEW IF EXISTS EmployeeView;
 DROP PROCEDURE IF EXISTS purchaseTicket;
+DROP FUNCTION IF EXISTS avgPrice;
+DROP TRIGGER IF EXISTS block_second_ceo;
 
 CREATE TABLE Users (
     userID INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
     email VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(64) NOT NULL,
     dateCreated DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -57,7 +60,8 @@ CREATE TABLE Flights (
 CREATE TABLE Rewards (
     rewardID INT PRIMARY KEY,
     requiredPoints INT NOT NULL,
-    rewardTier INT NOT NULL
+    rewardTier INT NOT NULL,
+    rewardDescription VARCHAR(200) NOT NULL DEFAULT ''
 );
 
 CREATE TABLE TicketPrices (
@@ -93,9 +97,9 @@ CREATE VIEW FlightStatuses AS
 SELECT flightID, status FROM Flights;
 
 CREATE VIEW EmployeeView AS
-SELECT employees.userID, users.name AS employeeName, employees.position
-FROM Employees employees
-JOIN Users users ON employees.userID = users.userID;
+SELECT e.userID, u.name AS employeeName, e.position
+FROM Employees e
+JOIN Users u ON e.userID = u.userID;
 
 
 -- Procedure [purchaseTicket]:
@@ -104,7 +108,6 @@ JOIN Users users ON employees.userID = users.userID;
 -- (iii) Also, to update the customer's total points after travelling 
 
 DELIMITER //
-
 CREATE PROCEDURE purchaseTicket(
     IN input_userID INT,
     IN input_flightID INT,
@@ -128,14 +131,12 @@ BEGIN
     SET points = points + earned_points
     WHERE userID = input_userID;
 END // 
-
 DELIMITER ;
 
 -- Function [avgPrice]:
 -- Just returning the average price of a flight based off the type of seat the user takes (economy, business, first)
 
 DELIMITER //
-
 CREATE FUNCTION avgPrice(input_ticketID INT)
 RETURNS DECIMAL(10, 2)
 BEGIN
@@ -148,35 +149,9 @@ BEGIN
 
     RETURN resulted_price;
 END // 
-
-DELIMITER ; 
-DELIMITER //
-
-DROP TRIGGER IF EXISTS enforce_single_CEO_before_insert;
-
-CREATE TRIGGER enforce_single_CEO_before_insert
-BEFORE INSERT ON Employees
-FOR EACH ROW
-BEGIN
-    DECLARE existingCEO INT;
-
-    -- Check if there is an existing CEO
-    IF NEW.position = 'CEO' THEN
-        SELECT userID INTO existingCEO
-        FROM Employees
-        WHERE position = 'CEO'
-        LIMIT 1;
-
-        -- If a CEO exists, demote them
-        IF existingCEO IS NOT NULL THEN
-            UPDATE Employees
-            SET position = 'Janitor'
-            WHERE userID = existingCEO;
-        END IF;
-    END IF;
-END//
-
 DELIMITER ;
+
+-- DROP TRIGGER IF EXISTS enforce_single_CEO_before_insert;
 
 DELIMITER //
 CREATE TRIGGER block_second_ceo
