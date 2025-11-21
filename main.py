@@ -80,8 +80,6 @@ def table_it(rows):
 
 def execute_sql(sql, params=[]):
     sql = sql.strip()
-    print(sql)
-    print(params)
     try:
         cur = conn.cursor(dictionary=True)
         cur.execute(sql, params)
@@ -94,12 +92,12 @@ def execute_sql(sql, params=[]):
         return []
     finally:
         cur.close()
-        #conn.close()
+
+
 
 ###############
 ### flights ###
 ###############
-# eventually: get by user id
 
 def _flights(id=None):
     sql = """
@@ -108,14 +106,41 @@ def _flights(id=None):
     result = execute_sql(sql)
     return result
 
+# this is unused but still helpful
 @app.get("/flights/")
-def getFlights(id=None):
-    return jsonify(_flights(id))
+def getFlights():
+    return jsonify(_flights())
+
+"""
+utilizes a join between the FlightStatus view and UserFlights table to get the flight statuses for a given user
+"""
+def _flight_statuses(id=None):
+    if not id:
+        return 400, "Endpoint requires user ID" 
+
+    sql = """
+    SELECT uf.flightID, fs.status
+    FROM UserFlights AS uf
+    JOIN FlightStatuses AS fs
+        ON uf.flightID = fs.flightID
+    WHERE uf.userID = %s;
+    """
+    params = [int(id)]
+
+    result = execute_sql(sql, params)
+    return result
+
+@app.post("/flights/status")
+def getFlightStatuses():
+    data = request.get_json()
+    return table_it(_flight_statuses(data["id"]))
 
 # helpful visual
 @app.get("/flights/table")
 def getFlightsTable(id=None):
     return table_it(_flights(id))
+
+
 
 #############
 ### users ###
@@ -131,12 +156,15 @@ def createUser():
     INSERT INTO Users (name, email, password) VALUES (%s, %s, %s)
     """
     params = [data["name"], data["email"], pw_hashed]
+
     result = execute_sql(sql, params)
     return jsonify(result)
 
-@app.get("/users/:id")
-def getUser():
-    pass
+
+
+###
+### ROCK AND ROLL
+###
 
 if __name__ == "__main__":
     app.run(debug=True)

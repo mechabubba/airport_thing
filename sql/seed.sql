@@ -60,7 +60,7 @@ INSERT INTO UserFlights (userID, flightID, ticketID) VALUES
 (1, 101, 101),
 (2, 101, 102),
 (3, 103, 103),
-(4, 105, 104),
+(3, 105, 104),
 (5, 105, 105);
 
 INSERT INTO CustomerRewards (userID, rewardID, rewardTier) VALUES

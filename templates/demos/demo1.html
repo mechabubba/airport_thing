@@ -1,17 +1,30 @@
 {% extends "demos/layout.html" %}
 
 {% block body %}
-<h1></h1>
 <p>View the flights logged within the database.</p>
 
-<button id="execute">Execute</button>
+<form id="signup">
+    <div class="row mb-3">
+        <label for="voter_id" class="col-sm-2 col-form-label">User ID</label>
+        <div class="col-sm-10"><input type="text" name="id" /></div>
+    </div>
+    <button type="submit" id="execute" class="btn btn-primary">Query</button>
+</form>
 
 <div id="result"></div>
 
 <script>
 const res = document.getElementById("result");
-document.getElementById("execute").addEventListener("click", () => {
-    fetch("/flights/table").then(r => r.text()).then(data => {
+document.getElementById("signup").addEventListener("submit", function (e) {
+    e.preventDefault(); // stop the normal form submit
+    const data = new FormData(e.target);
+    console.log(Object.fromEntries(data));
+
+    fetch("/flights/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(data))
+    }).then(r => r.text()).then(data => {
         console.log(data);
         res.innerHTML = data;
     });
