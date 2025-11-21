@@ -160,6 +160,33 @@ def createUser():
     result = execute_sql(sql, params)
     return jsonify(result)
 
+"""
+notes
+- left join to keep all users, dump unrecognized rewards
+"""
+@app.get("/users/")
+def getUsers():
+    sql = """
+    SELECT
+        u.userID,
+        u.name,
+        u.email,
+        u.dateCreated,
+        u.type,
+        COUNT(cr.rewardID) AS rewardCount
+    FROM Users AS u
+    LEFT JOIN CustomerRewards AS cr
+    ON u.userID = cr.userID
+    GROUP BY 
+        u.userID,
+        u.name,
+        u.email,
+        u.dateCreated,
+        u.type;
+    """
+    result = execute_sql(sql)
+    return table_it(result)
+
 
 
 ###
