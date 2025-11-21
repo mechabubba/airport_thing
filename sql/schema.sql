@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS UserFlights;
 DROP TABLE IF EXISTS CustomerRewards;
 
 CREATE TABLE Users (
-    userID INT PRIMARY KEY,
+    userID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     email VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(64) NOT NULL,
@@ -84,6 +84,9 @@ CREATE TABLE CustomerRewards (
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (rewardID) REFERENCES Rewards(rewardID)
 );
+
+CREATE VIEW FlightStatuses AS 
+SELECT flightID, status FROM Flights;
 
 -- Procedure [purchaseTicket]:
 -- (i) Obtaining a seat price (seat class) for a ticket and converting it into reward points.

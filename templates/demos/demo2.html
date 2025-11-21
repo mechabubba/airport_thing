@@ -2,27 +2,41 @@
 
 {% block body %}
 <h1></h1>
-<p>demo description</p>
+<p>Create a new user. This defaults to creating a customer user, as staff users are expected to be pre-seeded.</p>
 
-<button id="execute">Execute</button>
+<!-- ugly ahh form -->
+<form id="signup">
+    <div class="row mb-3">
+        <label for="voter_id" class="col-sm-2 col-form-label">Name</label>
+        <div class="col-sm-10"><input type="text" name="name" /></div>
+    </div>
+    <div class="row mb-3">
+        <label for="voter_id" class="col-sm-2 col-form-label">E-mail</label>
+        <div class="col-sm-10"><input type="text" name="email" /></div>
+    </div>
+    <div class="row mb-3">
+        <label for="voter_id" class="col-sm-2 col-form-label">Password</label>
+        <div class="col-sm-10"><input type="text" name="password" /></div>
+    </div>
+    <button type="submit" id="execute" class="btn btn-primary">Sign up</button>
+</form>
 
-<pre id="result"></pre>
+<div id="result"></div>
 
 <script>
-const sql = `
--- put ur sql here
-`;
-const params = [];
-
 const res = document.getElementById("result");
-document.getElementById("execute").addEventListener("click", () => {
-    fetch("/demo2/query", {
+document.getElementById("signup").addEventListener("submit", function (e) {
+    e.preventDefault(); // stop the normal form submit
+    const data = new FormData(e.target);
+    console.log(Object.fromEntries(data));
+
+    fetch("/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql, params })
-    }).then(r => r.json()).then(data => {
+        body: JSON.stringify(Object.fromEntries(data))
+    }).then(r => r.text()).then(data => {
         console.log(data);
-        res.innerText = JSON.stringify(data, null, 4);
+        res.innerHTML = data;
     });
 });
 </script>

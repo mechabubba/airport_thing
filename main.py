@@ -1,7 +1,9 @@
 import configparser
+import html
 import os
 import sys
 
+import bcrypt
 from flask import Flask, render_template, request, jsonify
 import mysql.connector
 
@@ -20,7 +22,8 @@ try:
         host=db_cfg["host"],
         user=db_cfg["user"],
         password=db_cfg["password"],
-        database=db_cfg["database"]
+        database=db_cfg["database"],
+        autocommit=True
     )
 except mysql.connector.Error as e:
     print("Error: Database connection failed!")
@@ -50,62 +53,90 @@ for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
             view_func=make_view(f"demos/{filename}") # relative paths only?
         )
 
-def execute_sql(sql, params):
+def table_it(rows):
+    if not rows:
+        return "<table class=\"table\"><tr><td>No data</td></tr></table>"
+
+    if isinstance(rows[0], dict):
+        columns = list(rows[0].keys())
+        get_val = lambda row, col: row.get(col, "")
+    else:
+        if columns is None:
+            raise ValueError("Column names required when rows are tuples.")
+        get_val = lambda row, idx: row[idx]
+
+    # we built this table
+    parts = ["<table class=\"table\">"]
+    parts.append("<thead><tr>" + "".join(f"<th>{html.escape(str(c))}</th>" for c in columns) + "</tr></thead>")
+    parts.append("<tbody>")
+    for row in rows:
+        parts.append("<tr>" + "".join(
+            f"<td>{html.escape(str(get_val(row, c if isinstance(row, dict) else i)))}</td>"
+            for i, c in enumerate(columns)
+        ) + "</tr>")
+    parts.append("</tbody></table>")
+
+    return "".join(parts)
+
+def execute_sql(sql, params=[]):
     sql = sql.strip()
+    print(sql)
+    print(params)
     try:
         cur = conn.cursor(dictionary=True)
         cur.execute(sql, params)
         return cur.fetchall()
     except mysql.connector.Error as e:
-        print(f"Error retrieving elections: {e}")
+        print("Error code:", e.errno)        # error number
+        print("SQLSTATE value:", e.sqlstate) # SQLSTATE value
+        print("Error message:", e.msg)       # error message
+        print("Error:", e)                   # errno, sqlstate, msg values
         return []
     finally:
         cur.close()
         #conn.close()
 
-# potentially dumber way of doing things
+###############
+### flights ###
+###############
+# eventually: get by user id
 
-@app.post("/demo1/query")
-def demo1_query():
-    data = request.get_json()
-    sql = data["sql"].strip()
-    params = data["params"]
-    print(sql, params)
-    result = execute_sql(sql, params)
-    print(result)
-    return jsonify(result)
+def _flights(id=None):
+    sql = """
+    SELECT * FROM Flights;
+    """
+    result = execute_sql(sql)
+    return result
 
-@app.post("/demo1/query")
-def demo2_query():
-    data = request.get_json()
-    sql = data["sql"].strip()
-    params = data["params"]
-    result = execute_sql(sql, params)
-    return jsonify(result)
+@app.get("/flights/")
+def getFlights(id=None):
+    return jsonify(_flights(id))
 
-@app.post("/demo1/query")
-def demo3_query():
-    data = request.get_json()
-    sql = data["sql"].strip()
-    params = data["params"]
-    result = execute_sql(sql, params)
-    return jsonify(result)
+# helpful visual
+@app.get("/flights/table")
+def getFlightsTable(id=None):
+    return table_it(_flights(id))
 
-@app.post("/demo1/query")
-def demo4_query():
-    data = request.get_json()
-    sql = data["sql"].strip()
-    params = data["params"]
-    result = execute_sql(sql, params)
-    return jsonify(result)
+#############
+### users ###
+#############
 
-@app.post("/demo1/query")
-def demo5_query():
+@app.post("/users/create")
+def createUser():
     data = request.get_json()
-    sql = data["sql"].strip()
-    params = data["params"]
+    pw = data["password"].encode('utf-8')
+    pw_hashed = bcrypt.hashpw(pw, bcrypt.gensalt())
+
+    sql = """
+    INSERT INTO Users (name, email, password) VALUES (%s, %s, %s)
+    """
+    params = [data["name"], data["email"], pw_hashed]
     result = execute_sql(sql, params)
     return jsonify(result)
+
+@app.get("/users/:id")
+def getUser():
+    pass
 
 if __name__ == "__main__":
     app.run(debug=True)
