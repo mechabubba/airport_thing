@@ -15,7 +15,8 @@ DROP VIEW IF EXISTS FlightStatuses;
 DROP VIEW IF EXISTS EmployeeView;
 DROP PROCEDURE IF EXISTS purchaseTicket;
 DROP FUNCTION IF EXISTS avgPrice;
-DROP TRIGGER IF EXISTS block_second_ceo;
+DROP TRIGGER IF EXISTS blockSecondCeo;
+DROP TRIGGER IF EXISTS checkPricePier;
 
 CREATE TABLE Users (
     userID INT AUTO_INCREMENT PRIMARY KEY,
@@ -151,10 +152,10 @@ BEGIN
 END // 
 DELIMITER ;
 
--- DROP TRIGGER IF EXISTS enforce_single_CEO_before_insert;
+-- The three triggers 
 
 DELIMITER //
-CREATE TRIGGER block_second_ceo
+CREATE TRIGGER blockSecondCeo
 BEFORE INSERT ON Employees
 FOR EACH ROW
 BEGIN
@@ -167,4 +168,17 @@ BEGIN
 END//
 DELIMITER ;
 
--- The three triggers 
+DELIMITER //
+CREATE TRIGGER checkPriceTier
+AFTER INSERT ON TicketPrices
+FOR EACH ROW
+BEGIN
+	IF NEW.firstClassPrice < NEW.businessClassPrice OR 
+		NEW.firstClassPrice < NEW.economyPrice OR 
+        NEW.businessClassPrice < NEW.economyPrice
+	THEN
+		 SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid prices';
+	END IF;
+END//
+DELIMITER ;
