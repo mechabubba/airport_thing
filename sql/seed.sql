@@ -76,3 +76,7 @@ INSERT INTO CustomerRewards (userID, rewardID, rewardTier) VALUES
 
 -- SELECT * FROM Employees;
 -- SHOW TRIGGERS;
+
+-- demo of tiers
+-- INSERT INTO TicketPrices (ticketID, firstClassPrice, businessClassPrice, economyPrice) VALUES
+-- (200, 550.00,  650.00, 250.00);
