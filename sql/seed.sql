@@ -37,9 +37,9 @@ INSERT INTO Flights (flightID, status, arrival, departure, airline, model, toLoc
 (105, "On Time",   "2025-11-06 10:15:00", "2025-11-06 06:50:00", "CloudAir",  "Airbus A350",'Dallas',750);
 
 INSERT INTO EmployeePositions (id, position) VALUES
-(1, "Pilot");
-(2, "Flight Attendant")
-(3, "Janitor")
+(1, "Pilot"),
+(2, "Flight Attendant"),
+(3, "Janitor"),
 (4, "CEO");
 
 INSERT INTO Rewards (rewardID, requiredPoints, rewardTier) VALUES
