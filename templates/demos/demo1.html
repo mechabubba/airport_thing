@@ -1,11 +1,12 @@
-{% extends "layout.html" %}
+{% extends "demos/layout.html" %}
 
 {% block body %}
-<div>this is an example</div>
+<h1></h1>
+<p>View the flights logged within the database.</p>
 
 <button id="execute">Execute</button>
 
-<div id="result"></div>
+<pre id="result"></pre>
 
 <script>
 const sql = `
@@ -20,11 +21,13 @@ document.getElementById("execute").addEventListener("click", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql, params })
     }).then(r => {
-        r.json();
+        return r.json();
     }).then(data => {
         console.log(data);
-        res.innerText = data;
+        res.innerText = JSON.stringify(data, null, 4);
     });
 });
 </script>
+
+{{ super() }}
 {% endblock %}

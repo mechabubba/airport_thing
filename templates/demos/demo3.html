@@ -1,0 +1,31 @@
+{% extends "demos/layout.html" %}
+
+{% block body %}
+<h1></h1>
+<p>demo description</p>
+
+<button id="execute">Execute</button>
+
+<pre id="result"></pre>
+
+<script>
+const sql = `
+-- put ur sql here
+`;
+const params = [];
+
+const res = document.getElementById("result");
+document.getElementById("execute").addEventListener("click", () => {
+    fetch("/demo3/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql, params })
+    }).then(r => r.json()).then(data => {
+        console.log(data);
+        res.innerText = JSON.stringify(data, null, 4);
+    });
+});
+</script>
+
+{{ super() }}
+{% endblock %}

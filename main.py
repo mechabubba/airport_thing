@@ -38,6 +38,8 @@ def home():
 for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
     if filename.endswith(".html"):
         route_name = "/" + filename[:-5] + "/" # strip the ".html"
+        if route_name == "layout":
+            continue
 
         def make_view(template_name):
             return lambda: render_template(template_name)
@@ -61,8 +63,7 @@ def execute_sql(sql, params):
         cur.close()
         #conn.close()
 
-# alright, anyway
-# trying not to continue to think too hard about this
+# potentially dumber way of doing things
 
 @app.post("/demo1/query")
 def demo1_query():
