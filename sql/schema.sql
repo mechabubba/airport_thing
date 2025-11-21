@@ -2,14 +2,18 @@ CREATE DATABASE IF NOT EXISTS Team10_Deliverable4;
 USE Team10_Deliverable4;
 -- DROP DATABASE Team10_Deliverable4;
 
-DROP TABLE IF EXISTS Users;
+DROP VIEW IF EXISTS FlightStatuses;
+DROP TABLE IF EXISTS UserFlights;
+DROP TABLE IF EXISTS CustomerRewards;
 DROP TABLE IF EXISTS Customers;
 DROP TABLE IF EXISTS Employees;
 DROP TABLE IF EXISTS Flights;
 DROP TABLE IF EXISTS Rewards;
 DROP TABLE IF EXISTS TicketPrices;
-DROP TABLE IF EXISTS UserFlights;
-DROP TABLE IF EXISTS CustomerRewards;
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS EmployeePositions;
+DROP TRIGGER IF EXISTS block_second_ceo;
+DROP PROCEDURE IF EXISTS purchaseTicket;
 
 CREATE TABLE Users (
     userID INT AUTO_INCREMENT PRIMARY KEY,
@@ -140,3 +144,44 @@ BEGIN
 END // 
 
 DELIMITER ; 
+DELIMITER //
+
+DROP TRIGGER IF EXISTS enforce_single_CEO_before_insert;
+
+CREATE TRIGGER enforce_single_CEO_before_insert
+BEFORE INSERT ON Employees
+FOR EACH ROW
+BEGIN
+    DECLARE existingCEO INT;
+
+    -- Check if there is an existing CEO
+    IF NEW.position = 'CEO' THEN
+        SELECT userID INTO existingCEO
+        FROM Employees
+        WHERE position = 'CEO'
+        LIMIT 1;
+
+        -- If a CEO exists, demote them
+        IF existingCEO IS NOT NULL THEN
+            UPDATE Employees
+            SET position = 'Janitor'
+            WHERE userID = existingCEO;
+        END IF;
+    END IF;
+END//
+
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER block_second_ceo
+BEFORE INSERT ON Employees
+FOR EACH ROW
+BEGIN
+    IF NEW.position = 'CEO' AND EXISTS (
+        SELECT 1 FROM Employees WHERE position = 'CEO'
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Only one CEO allowed.';
+    END IF;
+END//
+DELIMITER ;
