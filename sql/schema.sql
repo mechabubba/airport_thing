@@ -101,14 +101,14 @@ BEGIN
     DECLARE earned_points INT;
 
     -- Calculating the reward points from the economy price
-    SELECT FLOOR(economyPrice/10);
+    SELECT FLOOR(economyPrice/10)
     INTO earned_points
     FROM TicketPrices
     WHERE ticketID = input_ticketID;
 
     -- Inserting a new booking for this user 
     INSERT INTO UserFlights(userID, flightID, ticketID)
-    VALUES (input_userID, input_flightID, input_ticketID)
+    VALUES (input_userID, input_flightID, input_ticketID);
 
     -- Adding the earned reward points into the user's total 
     UPDATE Customers
