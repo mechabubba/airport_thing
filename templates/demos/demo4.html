@@ -7,11 +7,11 @@
 <form id="purchase_tix" class="p-3">
   <div class="mb-3 col-3">
     <label for="userID" class="form-label">User ID</label>
-    <input type="number" id="userID" name="user_id" class="form-control">
+    <input type="number" id="userID" name="userID" class="form-control">
   </div>
   <div class="mb-3">
     <label for="ticket_dropdown" class="form-label">Select Ticket</label>
-    <select id="ticket_dropdown" name="ticket_id" class="form-select">
+    <select id="ticket_dropdown" name="ticketID" class="form-select">
       <option value="">Loading..!</option>
     </select>
   </div>
@@ -50,15 +50,14 @@ fetch("/tickets")
 const res = document.getElementById("result");
 document.getElementById("purchase_tix").addEventListener("submit", (e) => {
     e.preventDefault(); // stop the normal form submit
-    const data = new FormData(e.target);
+    const data = Object.fromEntries(new FormData(e.target));
 
-    const fdata = Object.fromEntries(data); 
-    const tix = fdata["ticket_id"].split(",");
-    fetch("/ticket/purchase", {
+    const tix = data["ticketID"].split(",");
+    fetch("/tickets/purchase", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            userID: fdata["userID"],
+            userID: data["userID"],
             ticketID: tix[0],
             flightID: tix[1],
             class: tix[2]

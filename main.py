@@ -242,6 +242,7 @@ def getTickets():
 @app.post("/tickets/purchase")
 def purchaseTickets():
     data = request.get_json()
+    print(data)
     try:
         cur = conn.cursor(dictionary=True)
         res = cur.callproc("purchaseTicket", [
