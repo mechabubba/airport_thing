@@ -268,6 +268,28 @@ def purchaseTickets():
     finally:
         cur.close()
 
+###
+### Emplyoee Button
+###
+@app.post("/employees/add")
+def addEmployee():
+    data = request.get_json()
+    try:
+        cur = conn.cursor(dictionary=True)
+        sql = """
+        INSERT INTO Employees (userID, salary, startDate, position)
+        VALUES (%s, %s, NOW(), %s)
+        """
+        params = [data["userID"], data["salary"], data["position"]]
+        cur.execute(sql, params)
+        return "1"
+    except mysql.connector.Error as e:
+        return f"Error: {e.msg}"
+    finally:
+        cur.close()
+
+
+
 
 
 ###

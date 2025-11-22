@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h2>Trigger Demo: Hire Employee</h2>
+<p>This demo shows the trigger that prevents adding a second CEO.</p>
+
+<label>User ID:</label>
+<input id="uid" class="form-control">
+
+<label>Salary:</label>
+<input id="sal" class="form-control">
+
+<label>Position:</label>
+<select id="pos" class="form-control">
+    <option>Pilot</option>
+    <option>Flight Attendant</option>
+    <option>Janitor</option>
+    <option>CEO</option>
+</select>
+
+<button onclick="addEmp()" class="btn btn-primary mt-3">Add Employee</button>
+
+<p id="result" style="margin-top:20px; font-weight:bold;"></p>
+
+<script>
+function addEmp() {
+    fetch("/employees/add", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            userID: document.getElementById("uid").value,
+            salary: document.getElementById("sal").value,
+            position: document.getElementById("pos").value
+        })
+    })
+    .then(r => r.text())
+    .then(txt => document.getElementById("result").innerText = txt);
+}
+</script>
+
+{% endblock %}
