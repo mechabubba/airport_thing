@@ -113,27 +113,34 @@ DELIMITER //
 CREATE PROCEDURE purchaseTicket(
     IN input_userID INT,
     IN input_flightID INT,
-    IN input_ticketID INT
+    IN input_ticketID INT,
+    IN input_class ENUM("First Class", "Business Class", "Economy")
 )
 BEGIN
-    DECLARE earned_points INT;
+    DECLARE earned_points INT DEFAULT 0;
+    DECLARE success BOOLEAN DEFAULT FALSE;
 
-    -- Calculating the reward points from the economy price
-    SELECT FLOOR(economyPrice/10)
+    -- Calculating the points
+    SELECT FLOOR(economyPrice / 10)
     INTO earned_points
     FROM TicketPrices
     WHERE ticketID = input_ticketID;
 
-    -- Inserting a new booking for this user 
-    INSERT INTO UserFlights(userID, flightID, ticketID)
-    VALUES (input_userID, input_flightID, input_ticketID);
+    -- Inserting the  booking WITH CLASS
+    INSERT INTO UserFlights(userID, flightID, ticketID, class)
+    VALUES (input_userID, input_flightID, input_ticketID, input_class);
 
-    -- Adding the earned reward points into the user's total 
+    -- Updating the points
     UPDATE Customers
     SET points = points + earned_points
     WHERE userID = input_userID;
-END // 
+
+    SET success = TRUE;
+    SELECT success AS purchaseSuccess;
+
+END //
 DELIMITER ;
+
 
 -- Function [avgPrice]:
 -- Just returning the average price of a flight based off the type of seat the user takes (economy, business, first)
