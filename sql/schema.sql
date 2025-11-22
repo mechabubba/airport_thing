@@ -67,13 +67,16 @@ CREATE TABLE TicketPrices (
     ticketID INT PRIMARY KEY NOT NULL,
     firstClassPrice DECIMAL(10, 2),
     businessClassPrice DECIMAL(10, 2),
-    economyPrice DECIMAL(10, 2)
+    economyPrice DECIMAL(10, 2),
+    flightID INT NOT NULL,
+    FOREIGN KEY (flightID) REFERENCES Flights(flightID)
 );
 
 CREATE TABLE UserFlights (
     userID INT NOT NULL,
     flightID INT NOT NULL,
     ticketID INT NOT NULL,
+    class ENUM("First Class", "Business Class", "Economy") NOT NULL DEFAULT "Economy",
     PRIMARY KEY (userID, flightID),
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (flightID) REFERENCES Flights(flightID),

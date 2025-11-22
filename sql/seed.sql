@@ -19,7 +19,7 @@ INSERT INTO Customers (userID, totalMiles, points) VALUES
 (1,  15200, 300),
 (2,  8700,  180),
 (5,  22000, 500),
-(9,  17000, 1000),
+(9,  17000, 100000),
 (10, 3000,  200);
 
 INSERT INTO EmployeePositions (id, position) VALUES
@@ -49,19 +49,21 @@ INSERT INTO Rewards (rewardID, requiredPoints, rewardTier) VALUES
 (4, 50000, 4),
 (5, 75000, 5);
 
-INSERT INTO TicketPrices (ticketID, firstClassPrice, businessClassPrice, economyPrice) VALUES
-(101, 950.00,  650.00, 250.00),
-(102, 850.00,  550.00, 220.00),
-(103, 1000.00, 700.00, 280.00),
-(104, 1100.00, 750.00, 300.00),
-(105, 970.00,  640.00, 240.00);
+UPDATE Rewards SET rewardDescription = "A free upgrade to first class!" WHERE rewardID = 5;
 
-INSERT INTO UserFlights (userID, flightID, ticketID) VALUES
-(1, 101, 101),
-(2, 101, 102),
-(3, 103, 103),
-(3, 105, 104),
-(5, 105, 105);
+INSERT INTO TicketPrices (ticketID, firstClassPrice, businessClassPrice, economyPrice, flightID) VALUES
+(101, 950.00,  650.00, 250.00, 101),
+(102, 850.00,  550.00, 220.00, 101),
+(103, 1000.00, 700.00, 280.00, 103),
+(104, 1100.00, 750.00, 300.00, 104),
+(105, 970.00,  640.00, 240.00, 105);
+
+INSERT INTO UserFlights (userID, flightID, ticketID, class) VALUES
+(1, 101, 101, "Economy"),
+(2, 101, 102, "Economy"),
+(3, 103, 103, "Business Class"),
+(3, 105, 104, "First Class"),
+(5, 105, 105, "First Class");
 
 INSERT INTO CustomerRewards (userID, rewardID, rewardTier) VALUES
 (1,  1, 2),
