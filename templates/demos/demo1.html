@@ -1,7 +1,15 @@
 {% extends "demos/layout.html" %}
 
 {% block body %}
-<p>View the flights logged within the database.</p>
+<div>View all of a users flights logged within the database, as well as the capacity of that flight.<br>
+Utilizes;
+<ul>
+    <li>One <code>VIEW</code></li>
+    <li>One <code>JOIN</code></li>
+    <li>One subquery</li>
+    <li>One aggregation</li>
+</ul>
+</div>
 
 <form id="flight_query">
     <div class="row mb-3">

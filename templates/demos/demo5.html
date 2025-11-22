@@ -1,7 +1,13 @@
 {% extends "demos/layout.html" %}
 
 {% block body %}
-<p>List a users rewards.</p>
+<div>
+List a users rewards. Rewards are only listed if the user can afford to redeem them via their point count.<br>
+Utilizes;
+<ul>
+    <li>Two <code>JOIN</code>'s</li>
+</ul>
+</div>
 
 <form id="reward_query">
     <div class="row mb-3">
