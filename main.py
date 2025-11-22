@@ -146,6 +146,31 @@ def getFlightsTable(id=None):
 ### users ###
 #############
 
+@app.post("/users/rewards")
+def getUserRewards():
+    data = request.get_json()
+    _id = data["id"]
+
+    sql = """
+    SELECT 
+        r.rewardID,
+        r.rewardTier,
+        r.requiredPoints AS pointCost,
+        r.rewardDescription
+    FROM CustomerRewards AS cr
+    JOIN Rewards AS r
+        ON cr.rewardID = r.rewardID
+    JOIN Customers AS c
+        ON cr.userID = c.userID
+    WHERE cr.userID = %s
+        AND r.requiredPoints <= c.points;
+    """
+    params = [int(_id)]
+
+    result = execute_sql(sql, params)
+    return table_it(result)
+
+
 @app.post("/users/create")
 def createUser():
     data = request.get_json()
@@ -188,6 +213,29 @@ def getUsers():
     return table_it(result)
 
 
+
+###############
+### tickets ###
+###############
+
+@app.get("/tickets/")
+def getTickets():
+    sql = """
+    SELECT 
+        t.ticketID,
+        t.flightID,
+        t.firstClassPrice,
+        t.businessClassPrice,
+        t.economyPrice
+    FROM TicketPrices AS t
+    ORDER BY t.flightID, t.ticketID;
+    """
+    rows = execute_sql(sql, [])
+    return rows
+
+@app.post("/tickets/purchase")
+def purchaseTickets():
+    pass
 
 ###
 ### ROCK AND ROLL

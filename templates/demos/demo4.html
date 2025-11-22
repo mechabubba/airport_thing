@@ -4,18 +4,55 @@
 <h1></h1>
 <p>Purchase a ticket. Utilizes a procedure.</p>
 
-<button id="execute">Execute</button>
+<form id="purchase_tix" class="p-3">
+  <div class="mb-3 col-3">
+    <label for="userID" class="form-label">User ID</label>
+    <input type="number" id="userID" name="user_id" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label for="ticket_dropdown" class="form-label">Select Ticket</label>
+    <select id="ticket_dropdown" name="ticket_id" class="form-select">
+      <option value="">Loading..!</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
 
-<pre id="result"></pre>
+<div id="result"></div>
 
 <script>
-const sql = `
--- put ur sql here
-`;
-const params = [];
+fetch("/tickets")
+    .then(r => r.json())
+    .then(data => {
+        const dropdown = document.getElementById("ticket_dropdown");
+        dropdown.innerHTML = "";
+        for (const t in data) {
+            ticket = data[t];
+            const optgroup = document.createElement("optgroup"); // add a disabled label for each flight section
+            optgroup.label = `Flight ${ticket.flightID}`;
+
+            // a little hacky... :p
+            [
+                ["firstClassPrice", "First Class"],
+                ["businessClassPrice", "Business Class"],
+                ["economyPrice", "Economy"]
+            ].forEach(k => {
+                const price = ticket[k[0]]
+                const option = document.createElement("option");
+                option.value = `${ticket.ticketID},${ticket.flightID},${k[1]}`;
+                option.textContent = `${k[1]} Ticket (\$${price})`;
+                optgroup.appendChild(option);
+            })
+            dropdown.appendChild(optgroup);
+        }
+    });
 
 const res = document.getElementById("result");
-document.getElementById("execute").addEventListener("click", () => {
+document.getElementById("purchase_tix").addEventListener("submit", (e) => {
+    e.preventDefault(); // stop the normal form submit
+    const data = new FormData(e.target);
+    console.log(Object.fromEntries(data));
+    /*
     fetch("/demo4/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -24,6 +61,7 @@ document.getElementById("execute").addEventListener("click", () => {
         console.log(data);
         res.innerText = JSON.stringify(data, null, 4);
     });
+    */
 });
 </script>
 

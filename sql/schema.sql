@@ -185,7 +185,6 @@ END//
 DELIMITER ;
 
 DELIMITER //
-
 CREATE TRIGGER validatePositionBeforeInsert
 BEFORE INSERT ON Employees
 FOR EACH ROW
@@ -199,5 +198,4 @@ BEGIN
         SET MESSAGE_TEXT = 'Invalid position!';
     END IF;
 END//
-
 DELIMITER ;
