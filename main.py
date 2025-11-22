@@ -11,12 +11,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-# step one: find ya config
+# find local config file.
 config = configparser.ConfigParser()
 config.read(f"{BASE_DIR}/config.ini")
 db_cfg = config["db"]
 
-# step two: log in to ya server
 try:
     conn = mysql.connector.connect(
         host=db_cfg["host"],
@@ -30,7 +29,6 @@ except mysql.connector.Error as e:
     print(e)
     sys.exit(1)
 
-# step three: ignition
 app = Flask(__name__, static_folder=STATIC_DIR, template_folder=TEMPLATE_DIR)
 
 @app.route("/")
@@ -38,6 +36,7 @@ def home():
     return render_template("index.html")
 
 # dumb way of doing things
+# regrettable choice, but don't really want to touch it now...
 for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
     if filename.endswith(".html"):
         route_name = "/" + filename[:-5] + "/" # strip the ".html"
@@ -54,6 +53,9 @@ for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
         )
 
 def table_it(rows):
+    """
+    formats a set of sql rows into an html table. 
+    """
     if not rows:
         return "<table class=\"table\"><tr><td>No data</td></tr></table>"
 
@@ -76,9 +78,14 @@ def table_it(rows):
         ) + "</tr>")
     parts.append("</tbody></table>")
 
+    # we built this table on raw html
     return "".join(parts)
 
 def execute_sql(sql, params=[]):
+    """
+    executes a sql string
+    - automatically applies placeholder parameters if they're needed
+    """
     sql = sql.strip()
     try:
         cur = conn.cursor(dictionary=True)
@@ -95,9 +102,10 @@ def execute_sql(sql, params=[]):
 
 
 
-###############
-### flights ###
-###############
+######################
+### flight routing ###
+######################
+# (air traffic control)
 
 def _flights(id=None):
     sql = """
@@ -111,9 +119,7 @@ def _flights(id=None):
 def getFlights():
     return jsonify(_flights())
 
-"""
-utilizes a join between the FlightStatus view and UserFlights table to get the flight statuses for a given user
-"""
+# utilizes a join between the FlightStatus view and UserFlights table to get the flight statuses for a given user
 def _flight_statuses(id=None):
     if not id:
         return 400, "Endpoint requires user ID" 
@@ -235,11 +241,29 @@ def getTickets():
 
 @app.post("/tickets/purchase")
 def purchaseTickets():
-    pass
+    data = request.get_json()
+    try:
+        cur = conn.cursor(dictionary=True)
+        res = cur.callproc("purchaseTicket", [
+            data["userID"], 
+            data["flightID"], 
+            data["ticketID"], 
+            data["class"]
+        ])
+        return res
+    except mysql.connector.Error as e:
+        print("Error code:", e.errno)        # error number
+        print("SQLSTATE value:", e.sqlstate) # SQLSTATE value
+        print("Error message:", e.msg)       # error message
+        print("Error:", e)                   # errno, sqlstate, msg values
+        return False
+    finally:
+        cur.close()
+
+
 
 ###
 ### ROCK AND ROLL
 ###
-
 if __name__ == "__main__":
     app.run(debug=True)

@@ -51,17 +51,22 @@ const res = document.getElementById("result");
 document.getElementById("purchase_tix").addEventListener("submit", (e) => {
     e.preventDefault(); // stop the normal form submit
     const data = new FormData(e.target);
-    console.log(Object.fromEntries(data));
-    /*
-    fetch("/demo4/query", {
+
+    const fdata = Object.fromEntries(data); 
+    const tix = fdata["ticket_id"].split(",");
+    fetch("/ticket/purchase", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql, params })
+        body: JSON.stringify({
+            userID: fdata["userID"],
+            ticketID: tix[0],
+            flightID: tix[1],
+            class: tix[2]
+        })
     }).then(r => r.json()).then(data => {
         console.log(data);
         res.innerText = JSON.stringify(data, null, 4);
     });
-    */
 });
 </script>
 

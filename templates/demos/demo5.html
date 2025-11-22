@@ -19,7 +19,7 @@ document.getElementById("reward_query").addEventListener("submit", function (e) 
     const data = new FormData(e.target);
     console.log(Object.fromEntries(data));
 
-    fetch("/users/rewards", {
+    fetch("/tickets/purchase", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(Object.fromEntries(data))
