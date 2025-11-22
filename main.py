@@ -242,22 +242,29 @@ def getTickets():
 @app.post("/tickets/purchase")
 def purchaseTickets():
     data = request.get_json()
-    print(data)
     try:
         cur = conn.cursor(dictionary=True)
-        res = cur.callproc("purchaseTicket", [
-            data["userID"], 
-            data["flightID"], 
-            data["ticketID"], 
+
+        # Call the stored procedure
+        cur.callproc("purchaseTicket", [
+            data["userID"],
+            data["flightID"],
+            data["ticketID"],
             data["class"]
         ])
-        return res
-    except mysql.connector.Error as e:
-        print("Error code:", e.errno)        # error number
-        print("SQLSTATE value:", e.sqlstate) # SQLSTATE value
-        print("Error message:", e.msg)       # error message
-        print("Error:", e)                   # errno, sqlstate, msg values
-        return False
+
+        # Get SELECT result from the procedure (purchaseSuccess)
+        results = None
+        for result in cur.stored_results():
+            results = result.fetchall()
+
+        # If success, send "1"
+        if results and "purchaseSuccess" in results[0]:
+            return str(results[0]["purchaseSuccess"])
+
+        return "0"
+    except mysql.connector.Error:
+        return "0"
     finally:
         cur.close()
 
