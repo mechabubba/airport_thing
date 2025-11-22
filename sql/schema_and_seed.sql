@@ -1,3 +1,7 @@
+---------
+-- DDL --
+---------
+
 -- DROP DATABASE IF EXISTS Team10_Deliverable4;
 CREATE DATABASE IF NOT EXISTS Team10_Deliverable4;
 USE Team10_Deliverable4;
@@ -101,6 +105,7 @@ CREATE TABLE CustomerRewards (
 CREATE VIEW FlightStatuses AS 
 SELECT flightID, status FROM Flights;
 
+-- We don't use this one... just kept around for points.
 CREATE VIEW EmployeeView AS
 SELECT e.userID, u.name AS employeeName, e.position
 FROM Employees e
@@ -111,7 +116,6 @@ JOIN Users u ON e.userID = u.userID;
 -- (i) Obtaining a seat price (seat class) for a ticket and converting it into reward points.
 -- (ii) To insert a new booking into userflights using the customer info (user, flight, ticket id)
 -- (iii) Also, to update the customer's total points after travelling 
-
 DELIMITER //
 CREATE PROCEDURE purchaseTicket(
     IN input_userID INT,
@@ -147,9 +151,10 @@ DELIMITER ;
 
 -- Function [avgPrice]:
 -- Just returning the average price of a flight based off the type of seat the user takes (economy, business, first)
-
 DELIMITER //
-CREATE FUNCTION avgPrice(input_ticketID INT)
+CREATE FUNCTION avgPrice(
+    input_ticketID INT
+)
 RETURNS DECIMAL(10, 2)
 BEGIN
     DECLARE resulted_price DECIMAL(10, 2);
@@ -173,8 +178,7 @@ BEGIN
     IF NEW.position = 'CEO' AND EXISTS (
         SELECT 1 FROM Employees WHERE position = 'CEO'
     ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Only one CEO allowed.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one CEO allowed.';
     END IF;
 END//
 DELIMITER ;
@@ -188,8 +192,7 @@ BEGIN
 		NEW.firstClassPrice < NEW.economyPrice OR 
         NEW.businessClassPrice < NEW.economyPrice
 	THEN
-		 SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid prices';
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid order of prices! Economy should be the least expensive, first class the most, and business class in the middle.';
 	END IF;
 END//
 DELIMITER ;
@@ -204,8 +207,12 @@ BEGIN
         FROM EmployeePositions
         WHERE position = NEW.position
     ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid position!';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid position!';
     END IF;
 END//
 DELIMITER ;
+
+---------
+-- DML --
+---------
+

@@ -1,4 +1,5 @@
-{% extends "layout.html" %}
+{% extends "demos/layout.html" %}
+
 {% block body %}
 
 <h2>Trigger Demo: Hire Employee</h2>
@@ -34,8 +35,13 @@ function addEmp() {
         })
     })
     .then(r => r.text())
-    .then(txt => document.getElementById("result").innerText = txt);
+    .then(txt => document.getElementById("result").innerText = txt)
+    .catch(err => {
+        console.error(err);
+        res.innerHTML = "An error occurred while hiring an employee.";
+    });
 }
 </script>
 
+{{ super() }}
 {% endblock %}

@@ -32,6 +32,9 @@ document.getElementById("reward_query").addEventListener("submit", function (e) 
     }).then(r => r.text()).then(data => {
         console.log(data);
         res.innerHTML = data;
+    }).catch(err => {
+        console.error(err);
+        res.innerHTML = "An error occurred while listing user rewards.";
     });
 });
 </script>

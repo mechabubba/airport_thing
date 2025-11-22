@@ -83,3 +83,5 @@ INSERT INTO CustomerRewards (userID, rewardID, rewardTier) VALUES
 -- demo of validPositions
 -- INSERT INTO Employees (userID, salary, startDate, position) VALUES
 -- (33, 92000.00,  "2022-05-01 09:00:00", "Pill Enjoyer");
+
+-- this is also demonstrated in demo 6...

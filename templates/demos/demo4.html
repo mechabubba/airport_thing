@@ -3,10 +3,6 @@
 {% block body %}
 <div>
 Purchase a ticket. This utilizes a procedure to update a few different tables in tandem.<br>
-Utilizes;
-<ul>
-    <li>One procedure</li>
-</ul>
 </div>
 
 <form id="purchase_tix" class="p-3">
@@ -68,8 +64,15 @@ document.getElementById("purchase_tix").addEventListener("submit", (e) => {
             class: tix[2]
         })
     }).then(r => r.json()).then(data => {
-        console.log(data);
-        res.innerText = JSON.stringify(data, null, 4);
+        if (!data) {
+            throw new Error("Ticket already purchased!")
+        } else {
+            res.innerText = "The ticket is yours! :)"
+        }
+        // res.innerText = JSON.stringify(data, null, 4);
+    }).catch(err => {
+        console.error(err);
+        res.innerHTML = `An error occurred while purchasing a ticket; ${err.message}`;
     });
 });
 </script>

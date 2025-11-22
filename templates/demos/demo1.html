@@ -33,8 +33,10 @@ document.getElementById("flight_query").addEventListener("submit", function (e) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(Object.fromEntries(data))
     }).then(r => r.text()).then(data => {
-        console.log(data);
         res.innerHTML = data;
+    }).catch(err => {
+        console.error(err);
+        res.innerHTML = "An error occurred while requesting flight data.";
     });
 });
 </script>

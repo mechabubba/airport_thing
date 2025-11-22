@@ -20,6 +20,9 @@ document.getElementById("execute").addEventListener("click", () => {
     fetch("/users/").then(r => r.text()).then(data => {
         console.log(data);
         res.innerHTML = data;
+    }).catch(err => {
+        console.error(err);
+        res.innerHTML = "An error occurred while fetching users.";
     });
 });
 </script>
