@@ -184,6 +184,19 @@ END//
 DELIMITER ;
 
 DELIMITER //
+CREATE TRIGGER blockSecondCeoUpdate
+BEFORE UPDATE ON Employees
+FOR EACH ROW
+BEGIN
+    IF NEW.position = 'CEO' AND EXISTS (
+        SELECT 1 FROM Employees WHERE position = 'CEO'
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one CEO allowed.';
+    END IF;
+END//
+DELIMITER ;
+
+DELIMITER //
 CREATE TRIGGER checkPriceTier
 AFTER INSERT ON TicketPrices
 FOR EACH ROW

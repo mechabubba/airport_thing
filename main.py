@@ -402,15 +402,38 @@ def purchaseTickets():
 @app.post("/employees/add")
 def addEmployee():
     data = request.get_json()
+    user_id = data["userID"]
+    salary = data["salary"]
+    position = data["position"]
+
     try:
         cur = conn.cursor(dictionary=True)
-        sql = """
-        INSERT INTO Employees (userID, salary, startDate, position)
-        VALUES (%s, %s, NOW(), %s)
-        """
-        params = [data["userID"], data["salary"], data["position"]]
-        cur.execute(sql, params)
-        return "1"
+
+        # Check if employee already exists
+        check_sql = "SELECT userID FROM Employees WHERE userID = %s LIMIT 1"
+        cur.execute(check_sql, (user_id,))
+        existing = cur.fetchone()
+
+        if existing:
+            # Update existing employee record
+            update_sql = """
+            UPDATE Employees
+            SET salary = %s,
+                position = %s
+            WHERE userID = %s
+            """
+            cur.execute(update_sql, (salary, position, existing["userID"]))
+            return "Employee updated. :)"
+
+        else:
+            # Insert new employee
+            insert_sql = """
+            INSERT INTO Employees (userID, salary, startDate, position)
+            VALUES (%s, %s, NOW(), %s)
+            """
+            cur.execute(insert_sql, (user_id, salary, position))
+            return "New employee added. :)"
+
     except mysql.connector.Error as e:
         return f"Error: {e.msg}"
     finally:
