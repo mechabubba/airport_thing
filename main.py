@@ -16,14 +16,58 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 # whats one more global to the fray
 SESSIONS = {}
 
-def require_session(view):
-    @wraps(view)
-    def wrapper(*args, **kwargs):
-        sid = request.cookies.get("session_id")
-        if not sid or sid not in SESSIONS:
-            return "Unauthorized", 401
-        return view(*args, **kwargs)
-    return wrapper
+# role hierarchy (making everything worse)
+ROLE_LEVEL = {
+    "Guest": 0,
+    "Customer": 1,
+    "Staff": 2
+}
+
+def require_session(required=None):
+    """
+    required = None        → any logged-in user OR Guest
+    required = "Customer"  → Customer or Staff
+    required = "Staff"     → Staff only
+    """
+    def decorator(view):
+        @wraps(view)
+        def wrapper(*args, **kwargs):
+            sid = request.cookies.get("session_id")
+
+            # If no session cookie, treat user as Guest
+            if not sid or sid not in SESSIONS:
+                user_role = "Guest"
+                user_id = None
+            else:
+                user_id = SESSIONS[sid]
+
+                # Fetch role from DB
+                sql = """
+                SELECT type
+                FROM Users
+                WHERE userID = %s
+                LIMIT 1
+                """
+                rows = execute_sql(sql, [user_id])
+
+                user_role = rows[0]["type"] if rows else "Guest"
+
+            # Guests can access ANY page
+            if user_role == "Guest":
+                return view(*args, **kwargs)
+
+            # If no required role for this page, allow
+            if required is None:
+                return view(*args, **kwargs)
+
+            # Compare hierarchical access level
+            if ROLE_LEVEL[user_role] < ROLE_LEVEL[required]:
+                return "Forbidden", 403
+
+            return view(*args, **kwargs)
+
+        return wrapper
+    return decorator
 
 # find local config file.
 config = configparser.ConfigParser()
@@ -49,8 +93,13 @@ app = Flask(__name__, static_folder=STATIC_DIR, template_folder=TEMPLATE_DIR)
 def home():
     return render_template("index.html")
 
+@app.get("/customer")
+@require_session(required="Customer")
+def customer_page():
+    return render_template("customer.html")
+
 @app.get("/staff")
-@require_session
+@require_session(required="Staff")
 def staff_page():
     return render_template("staff.html")
 
@@ -71,7 +120,7 @@ for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
             continue
 
         def make_view(template_name):
-            @require_session
+            @require_session(required="Staff")
             def view():
                 return render_template(template_name)
             return view
@@ -214,12 +263,31 @@ def createUser():
     pw_hashed = bcrypt.hashpw(pw, bcrypt.gensalt())
 
     sql = """
-    INSERT INTO Users (name, email, password) VALUES (%s, %s, %s)
+    INSERT INTO Users (name, email, password, type) VALUES (%s, %s, %s, "Staff")
     """
     params = [data["name"], data["email"], pw_hashed]
 
     result = execute_sql(sql, params)
     return jsonify(result)
+
+@app.get("/users/me")
+@require_session
+def get_current_user():
+    session_id = request.cookies.get("session_id")
+    user_id = SESSIONS.get(session_id)
+
+    sql = """
+    SELECT userID, name, email, dateCreated, type
+    FROM Users
+    WHERE userID = %s
+    LIMIT 1
+    """
+    rows = execute_sql(sql, [user_id])
+
+    if not rows:
+        return "User not found", 404
+
+    return jsonify(rows[0])
 
 """
 notes

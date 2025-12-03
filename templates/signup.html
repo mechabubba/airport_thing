@@ -17,10 +17,10 @@
     <button type="submit" id="execute" class="btn btn-primary">Sign up</button>
 </form>
 
-<div id="result"></div>
+<div id="msg"></div>
 
 <script>
-const res = document.getElementById("result");
+const res = document.getElementById("msg");
 document.getElementById("signup").addEventListener("submit", function (e) {
     e.preventDefault(); // stop the normal form submit
     const data = new FormData(e.target);
@@ -31,11 +31,10 @@ document.getElementById("signup").addEventListener("submit", function (e) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(Object.fromEntries(data))
     }).then(r => r.text()).then(data => {
-        console.log(data);
-        res.innerHTML = data;
+        res.innerText = "Account created! Click back and login.";
     }).catch(err => {
         console.error(err);
-        res.innerHTML = "An error occurred while creating a user.";
+        res.innerHTML = "An error occurred while signing up.";
     });
 });
 </script>

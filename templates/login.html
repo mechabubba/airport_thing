@@ -14,10 +14,10 @@
     <button type="submit" class="btn btn-primary">Log in</button>
 </form>
 
-<div id="result"></div>
+<div id="msg"></div>
 
 <script>
-const res = document.getElementById("result");
+const res = document.getElementById("msg");
 
 document.getElementById("login").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -33,7 +33,7 @@ document.getElementById("login").addEventListener("submit", function (e) {
     .then(r => r.json())
     .then(txt => {
         if (txt["type"] == "Customer") {
-            window.location = "/"
+            window.location = "/customer"
         } else {
             window.location = "/staff"
         }
