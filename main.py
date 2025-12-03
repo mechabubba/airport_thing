@@ -2,6 +2,8 @@ import configparser
 import html
 import os
 import sys
+from functools import wraps
+import uuid
 
 import bcrypt
 from flask import Flask, render_template, request, jsonify
@@ -10,6 +12,18 @@ import mysql.connector
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+# whats one more global to the fray
+SESSIONS = {}
+
+def require_session(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        sid = request.cookies.get("session_id")
+        if not sid or sid not in SESSIONS:
+            return "Unauthorized", 401
+        return view(*args, **kwargs)
+    return wrapper
 
 # find local config file.
 config = configparser.ConfigParser()
@@ -35,6 +49,19 @@ app = Flask(__name__, static_folder=STATIC_DIR, template_folder=TEMPLATE_DIR)
 def home():
     return render_template("index.html")
 
+@app.get("/staff")
+@require_session
+def staff_page():
+    return render_template("staff.html")
+
+@app.get("/signup")
+def signup_page():
+    return render_template("signup.html")
+
+@app.get("/login")
+def login_page():
+    return render_template("login.html")
+
 # dumb way of doing things
 # regrettable choice, but don't really want to touch it now...
 for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
@@ -44,7 +71,10 @@ for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
             continue
 
         def make_view(template_name):
-            return lambda: render_template(template_name)
+            @require_session
+            def view():
+                return render_template(template_name)
+            return view
 
         app.add_url_rule(
             route_name,
@@ -220,6 +250,36 @@ def getUsers():
 
 
 
+###
+### sessions???
+###
+
+@app.post("/sessions/create")
+def create_session():
+    data = request.get_json()
+    email = data["email"]
+    password = data["password"].encode("utf-8")
+
+    # fetch stored hashed password
+    sql = "SELECT userID, password, type FROM Users WHERE email = %s LIMIT 1"
+    rows = execute_sql(sql, [email])
+    if not rows:
+        return "Invalid credentials", 401
+
+    user = rows[0]
+    stored_hash = user["password"].encode("utf-8")
+
+    if not bcrypt.checkpw(password, stored_hash):
+        return "Invalid credentials", 401
+
+    # create session
+    session_id = uuid.uuid4().hex
+    SESSIONS[session_id] = user["userID"]
+
+    resp = jsonify({"success": True, "type": user["type"]})
+    resp.set_cookie("session_id", session_id, httponly=True, samesite="Strict")
+    return resp
+
 ###############
 ### tickets ###
 ###############
@@ -287,7 +347,6 @@ def addEmployee():
         return f"Error: {e.msg}"
     finally:
         cur.close()
-
 
 
 

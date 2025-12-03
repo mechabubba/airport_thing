@@ -1,6 +1,6 @@
----------
--- DDL --
----------
+--
+-- DDL
+--
 
 -- DROP DATABASE IF EXISTS Team10_Deliverable4;
 CREATE DATABASE IF NOT EXISTS Team10_Deliverable4;
@@ -212,9 +212,9 @@ BEGIN
 END//
 DELIMITER ;
 
----------
--- DML --
----------
+--
+-- DML
+--
 
 INSERT INTO Users (userID, name, email, password, dateCreated, type) VALUES
 -- (1, "Alice",  "alice@example.com",  "hashedpass1",  "2025-01-10 14:23:00"),
