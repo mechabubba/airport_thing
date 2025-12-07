@@ -2,6 +2,8 @@ import configparser
 import html
 import os
 import sys
+from functools import wraps
+import uuid
 
 import bcrypt
 from flask import Flask, render_template, request, jsonify
@@ -10,6 +12,62 @@ import mysql.connector
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+# whats one more global to the fray
+SESSIONS = {}
+
+# role hierarchy (making everything worse)
+ROLE_LEVEL = {
+    "Guest": 0,
+    "Customer": 1,
+    "Staff": 2
+}
+
+def require_session(required=None):
+    """
+    required = None        → any logged-in user OR Guest
+    required = "Customer"  → Customer or Staff
+    required = "Staff"     → Staff only
+    """
+    def decorator(view):
+        @wraps(view)
+        def wrapper(*args, **kwargs):
+            sid = request.cookies.get("session_id")
+
+            # If no session cookie, treat user as Guest
+            if not sid or sid not in SESSIONS:
+                user_role = "Guest"
+                user_id = None
+            else:
+                user_id = SESSIONS[sid]
+
+                # Fetch role from DB
+                sql = """
+                SELECT type
+                FROM Users
+                WHERE userID = %s
+                LIMIT 1
+                """
+                rows = execute_sql(sql, [user_id])
+
+                user_role = rows[0]["type"] if rows else "Guest"
+
+            # Guests can access ANY page
+            if user_role == "Guest":
+                return view(*args, **kwargs)
+
+            # If no required role for this page, allow
+            if required is None:
+                return view(*args, **kwargs)
+
+            # Compare hierarchical access level
+            if ROLE_LEVEL[user_role] < ROLE_LEVEL[required]:
+                return "Forbidden", 403
+
+            return view(*args, **kwargs)
+
+        return wrapper
+    return decorator
 
 # find local config file.
 config = configparser.ConfigParser()
@@ -35,6 +93,24 @@ app = Flask(__name__, static_folder=STATIC_DIR, template_folder=TEMPLATE_DIR)
 def home():
     return render_template("index.html")
 
+@app.get("/customer")
+@require_session(required="Customer")
+def customer_page():
+    return render_template("customer.html")
+
+@app.get("/staff")
+@require_session(required="Staff")
+def staff_page():
+    return render_template("staff.html")
+
+@app.get("/signup")
+def signup_page():
+    return render_template("signup.html")
+
+@app.get("/login")
+def login_page():
+    return render_template("login.html")
+
 # dumb way of doing things
 # regrettable choice, but don't really want to touch it now...
 for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
@@ -44,7 +120,10 @@ for filename in os.listdir(os.path.join(TEMPLATE_DIR, "demos")):
             continue
 
         def make_view(template_name):
-            return lambda: render_template(template_name)
+            @require_session(required="Staff")
+            def view():
+                return render_template(template_name)
+            return view
 
         app.add_url_rule(
             route_name,
@@ -184,12 +263,31 @@ def createUser():
     pw_hashed = bcrypt.hashpw(pw, bcrypt.gensalt())
 
     sql = """
-    INSERT INTO Users (name, email, password) VALUES (%s, %s, %s)
+    INSERT INTO Users (name, email, password, type) VALUES (%s, %s, %s, "Staff")
     """
     params = [data["name"], data["email"], pw_hashed]
 
     result = execute_sql(sql, params)
     return jsonify(result)
+
+@app.get("/users/me")
+@require_session
+def get_current_user():
+    session_id = request.cookies.get("session_id")
+    user_id = SESSIONS.get(session_id)
+
+    sql = """
+    SELECT userID, name, email, dateCreated, type
+    FROM Users
+    WHERE userID = %s
+    LIMIT 1
+    """
+    rows = execute_sql(sql, [user_id])
+
+    if not rows:
+        return "User not found", 404
+
+    return jsonify(rows[0])
 
 """
 notes
@@ -219,6 +317,36 @@ def getUsers():
     return table_it(result)
 
 
+
+###
+### sessions???
+###
+
+@app.post("/sessions/create")
+def create_session():
+    data = request.get_json()
+    email = data["email"]
+    password = data["password"].encode("utf-8")
+
+    # fetch stored hashed password
+    sql = "SELECT userID, password, type FROM Users WHERE email = %s LIMIT 1"
+    rows = execute_sql(sql, [email])
+    if not rows:
+        return "Invalid credentials", 401
+
+    user = rows[0]
+    stored_hash = user["password"].encode("utf-8")
+
+    if not bcrypt.checkpw(password, stored_hash):
+        return "Invalid credentials", 401
+
+    # create session
+    session_id = uuid.uuid4().hex
+    SESSIONS[session_id] = user["userID"]
+
+    resp = jsonify({"success": True, "type": user["type"]})
+    resp.set_cookie("session_id", session_id, httponly=True, samesite="Strict")
+    return resp
 
 ###############
 ### tickets ###
@@ -274,20 +402,42 @@ def purchaseTickets():
 @app.post("/employees/add")
 def addEmployee():
     data = request.get_json()
+    user_id = data["userID"]
+    salary = data["salary"]
+    position = data["position"]
+
     try:
         cur = conn.cursor(dictionary=True)
-        sql = """
-        INSERT INTO Employees (userID, salary, startDate, position)
-        VALUES (%s, %s, NOW(), %s)
-        """
-        params = [data["userID"], data["salary"], data["position"]]
-        cur.execute(sql, params)
-        return "1"
+
+        # Check if employee already exists
+        check_sql = "SELECT userID FROM Employees WHERE userID = %s LIMIT 1"
+        cur.execute(check_sql, (user_id,))
+        existing = cur.fetchone()
+
+        if existing:
+            # Update existing employee record
+            update_sql = """
+            UPDATE Employees
+            SET salary = %s,
+                position = %s
+            WHERE userID = %s
+            """
+            cur.execute(update_sql, (salary, position, existing["userID"]))
+            return "Employee updated. :)"
+
+        else:
+            # Insert new employee
+            insert_sql = """
+            INSERT INTO Employees (userID, salary, startDate, position)
+            VALUES (%s, %s, NOW(), %s)
+            """
+            cur.execute(insert_sql, (user_id, salary, position))
+            return "New employee added. :)"
+
     except mysql.connector.Error as e:
         return f"Error: {e.msg}"
     finally:
         cur.close()
-
 
 
 

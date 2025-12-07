@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<form id="login">
+    <div class="row mb-3">
+        <label for="voter_id" class="col-sm-2 col-form-label">E-mail</label>
+        <div class="col-sm-10"><input type="text" name="email" required /></div>
+    </div>
+    <div class="row mb-3">
+        <label for="voter_id" class="col-sm-2 col-form-label">Password</label>
+        <div class="col-sm-10"><input type="password" name="password" required /></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Log in</button>
+</form>
+
+<div id="msg"></div>
+
+<script>
+const res = document.getElementById("msg");
+
+document.getElementById("login").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const data = new FormData(e.target);
+    const payload = Object.fromEntries(data);
+
+    fetch("/sessions/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(txt => {
+        if (txt["type"] == "Customer") {
+            window.location = "/customer"
+        } else {
+            window.location = "/staff"
+        }
+    })
+    .catch(err => {
+        res.innerHTML = "Login failed.";
+    });
+});
+</script>
+
+<a href="/">Back</a>
+{% endblock %}

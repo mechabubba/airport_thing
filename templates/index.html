@@ -1,18 +1,11 @@
 {% extends "layout.html" %}
 
-{% block head %}
-    <title>Team 10 Deliverable 5</title>
-{% endblock %}
-
 {% block body %}
-    <h1>Deliverable 5: Database Implementation</h1>
-    <h3>Thomas Luong-Tran, Juan Roshan, Steven Vanni</h3>
-    <p>Hello! Here is our fifth project deliverable.</p>
-    <p>This is a demonstration of a web API interfacing with our developed SQL schema, based on the query demo requirements. For now, consider this the employee/sysadmin interface for interacting with the app.</p>
-    <a href="{{ url_for('/demo1/') }}">Demo 1</a><br>
-    <a href="{{ url_for('/demo2/') }}">Demo 2</a><br>
-    <a href="{{ url_for('/demo3/') }}">Demo 3</a><br>
-    <a href="{{ url_for('/demo4/') }}">Demo 4</a><br>
-    <a href="{{ url_for('/demo5/') }}">Demo 5</a><br>
-    <a href="{{ url_for('/demo6/') }}">Demo 6</a><br>
+<h1>Team 10: Airport Thing</h1>
+Welcome!
+<br>
+<a href="/login" class="btn btn-primary">Login</a>
+
+<a href="/signup" class="btn btn-primary">Sign up</a>
+
 {% endblock %}

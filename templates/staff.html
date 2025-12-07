@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <h1>Airport Thing: Staff Portal</h1>
+    <p>Some staff tools for you to inspect...</p>
+    <ul>
+        <li><a href="{{ url_for('/demo1/') }}">View user flights</a><br></li>
+        <li><a href="{{ url_for('/demo2/') }}">Create a user</a><br></li>
+        <li><a href="{{ url_for('/demo3/') }}">View all user info</a><br></li>
+        <li><a href="{{ url_for('/demo4/') }}">Purchase a ticket</a><br></li>
+        <li><a href="{{ url_for('/demo5/') }}">View user rewards</a><br></li>
+        <li><a href="{{ url_for('/demo6/') }}">Trigger Demo: Hire Employee</a><br></li>
+    </ul>
+
+<a href="/">Back</a>
+{% endblock %}

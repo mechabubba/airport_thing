@@ -7,3 +7,7 @@ body {
     margin: 1em 0;
     min-height: 2em;
 }
+
+#msg {
+    color: orange;
+}

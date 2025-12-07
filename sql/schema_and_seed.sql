@@ -1,6 +1,6 @@
----------
--- DDL --
----------
+--
+-- DDL
+--
 
 -- DROP DATABASE IF EXISTS Team10_Deliverable4;
 CREATE DATABASE IF NOT EXISTS Team10_Deliverable4;
@@ -184,6 +184,19 @@ END//
 DELIMITER ;
 
 DELIMITER //
+CREATE TRIGGER blockSecondCeoUpdate
+BEFORE UPDATE ON Employees
+FOR EACH ROW
+BEGIN
+    IF NEW.position = 'CEO' AND EXISTS (
+        SELECT 1 FROM Employees WHERE position = 'CEO'
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one CEO allowed.';
+    END IF;
+END//
+DELIMITER ;
+
+DELIMITER //
 CREATE TRIGGER checkPriceTier
 AFTER INSERT ON TicketPrices
 FOR EACH ROW
@@ -212,9 +225,9 @@ BEGIN
 END//
 DELIMITER ;
 
----------
--- DML --
----------
+--
+-- DML
+--
 
 INSERT INTO Users (userID, name, email, password, dateCreated, type) VALUES
 -- (1, "Alice",  "alice@example.com",  "hashedpass1",  "2025-01-10 14:23:00"),
